@@ -1,0 +1,20 @@
+{
+	"folders":
+	[
+		{
+			"path": "/home/cailei/proj/go/gopm",
+            "file_include_patterns":
+            [
+                "README.md",
+                "*.go",
+                ".gitignore",
+                "*.sublime-project"
+            ],
+            "folder_exclude_patterns":
+            [
+                "_bin",
+                "_obj"
+            ]
+		}
+	]
+}
