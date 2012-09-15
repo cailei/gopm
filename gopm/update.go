@@ -15,9 +15,10 @@ var local_index_url string = "my_index.json"
 func cmd_update(args []string) {
     // parse flags
     var help bool
-    f := flag.NewFlagSet("update_flags", flag.PanicOnError)
+    f := flag.NewFlagSet("update_flags", flag.ExitOnError)
     f.BoolVar(&help, "help", false, "show help info")
-    f.BoolVar(&help, "h", false, "show help info")
+    f.BoolVar(&help, "h", false, "show help info (shorthand)")
+    f.Usage = print_update_help
     f.Parse(args)
 
     if help {
@@ -49,7 +50,12 @@ func cmd_update(args []string) {
 
 func print_update_help() {
     fmt.Print(`
-update gopm local index.
+gopm update:
+    update gopm local index.
+
+options:
+    -v, -verbose    verbose
+    -h, -help       show help info
 
 `)
 

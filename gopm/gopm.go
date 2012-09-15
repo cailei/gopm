@@ -11,6 +11,7 @@ var cmd_map = map[string]command_fun{
     "update":  cmd_update,
     "search":  cmd_search,
     "install": cmd_install,
+    "publish": cmd_publish,
 }
 
 func main() {
