@@ -10,7 +10,9 @@ type command_fun func(args []string)
 var cmd_map = map[string]command_fun{
     "update":  cmd_update,
     "search":  cmd_search,
+    "show":    cmd_show,
     "install": cmd_install,
+    "create":  cmd_create,
     "publish": cmd_publish,
 }
 
@@ -56,7 +58,8 @@ where <command> is one of:
     update      update package index to the latest
     search      search for packages
     install     install a package
-    version     show gopm version info
+    create      create your own package
+    publish     publish your package to the central index database
 
 'gopm help <command>':
     show command specific options

@@ -1,8 +1,15 @@
 package main
 
 import (
+    "encoding/json"
     "flag"
     "fmt"
+    "github.com/cailei/gopm_index"
+    "github.com/kr/pretty"
+    "io/ioutil"
+    "log"
+    "os"
+    "path"
 )
 
 func cmd_publish(args []string) {
@@ -10,7 +17,7 @@ func cmd_publish(args []string) {
     var help bool
     var verbose bool
 
-    f := flag.NewFlagSet("update_flags", flag.ExitOnError)
+    f := flag.NewFlagSet("publish_flags", flag.ExitOnError)
     f.BoolVar(&help, "help", false, "show help info")
     f.BoolVar(&help, "h", false, "show help info")
     f.BoolVar(&verbose, "verbose", false, "verbose")
@@ -23,36 +30,45 @@ func cmd_publish(args []string) {
         return
     }
 
-    /*
+    // get package folder
+    folders := f.Args()
+    if len(folders) == 0 {
+        fmt.Print("\nPlease provide a path to your package.\n")
+        print_publish_help()
+        return
+    }
+    folder := folders[0]
 
-       // check folder
+    // read package.json in the folder
+    json_file_name := path.Join(folder, "package.json")
+    json_file, err := os.Open(json_file_name)
+    if err != nil {
+        log.Fatalln(err)
+    }
+    defer json_file.Close()
 
-       // request the index content
-       response, err := http.Get(remote_index_url)
-       if err != nil {
-           log.Fatal(err)
-       }
+    json_content, err := ioutil.ReadAll(json_file)
+    if err != nil {
+        log.Fatalln(err)
+    }
 
-       file, err := os.Create(local_index_url)
-       if err != nil {
-           log.Fatal(err)
-       }
-       defer file.Close()
+    // unmarshal to PackageMeta object
+    var meta gopm_index.PackageMeta
+    if err := json.Unmarshal(json_content, &meta); err != nil {
+        log.Fatalln(err)
+    }
 
-       // write index content to local file
-       bytes, err := io.Copy(file, response.Body)
-       if err != nil {
-           os.Remove(local_index_url)
-           log.Fatal(err)
-       }
+    // check mandatory fields
+    if meta.Name == "" {
+        log.Fatalln("package.json: 'name' is empty")
+    }
 
-       fmt.Printf("Successfully updated index! [total bytes: %v]\n", bytes)
-    */
+    pretty.Printf("%#v\n", meta)
 }
 
 func print_publish_help() {
     fmt.Print(`
-gopm publish <package folder>:
+gopm publish <package name>:
     publish your package to the central index database.
 
 options:
