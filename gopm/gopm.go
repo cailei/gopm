@@ -7,14 +7,10 @@ import (
 
 type command_fun func(args []string)
 
-var cmd_map map[string]command_fun
-
-func init() {
-    cmd_map = map[string]command_fun{
-        "update":  cmd_update,
-        "search":  cmd_search,
-        "install": cmd_install,
-    }
+var cmd_map = map[string]command_fun{
+    "update":  cmd_update,
+    "search":  cmd_search,
+    "install": cmd_install,
 }
 
 func main() {
@@ -47,7 +43,7 @@ func main() {
     }
 
     // call the command's function
-    fun(args[2:]) // drop the 'gopm' and command
+    fun(args[2:]) // drop the 'gopm' and <command> argument
 }
 
 func print_usage() {

@@ -9,13 +9,8 @@ import (
     "os"
 )
 
-var remote_index_url string
-var local_index_url string
-
-func init() {
-    remote_index_url = "http://localhost:8080/all"
-    local_index_url = "my_index.json"
-}
+var remote_index_url string = "http://localhost:8080/all"
+var local_index_url string = "my_index.json"
 
 func cmd_update(args []string) {
     // parse flags
