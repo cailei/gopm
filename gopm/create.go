@@ -10,14 +10,11 @@ import (
 func cmd_create(args []string) {
     // parse flags
     var help bool
-    var verbose bool
     var force bool
 
     f := flag.NewFlagSet("create_flags", flag.ExitOnError)
     f.BoolVar(&help, "help", false, "show help info")
     f.BoolVar(&help, "h", false, "show help info")
-    f.BoolVar(&verbose, "verbose", false, "verbose")
-    f.BoolVar(&verbose, "v", false, "verbose")
     f.BoolVar(&force, "force", false, "force overwrite")
     f.BoolVar(&force, "f", false, "force overwrite")
     f.Usage = print_create_help
@@ -37,18 +34,21 @@ func cmd_create(args []string) {
     }
 
     for i := 0; i < len(jsons); i++ {
-        create_json(jsons[i], verbose, force)
+        create_json(jsons[i], force)
     }
 }
 
-func create_json(json_name string, verbose bool, force bool) {
+func create_json(json_name string, force bool) {
     file_name := json_name + ".json"
+    overwritten := false
 
     // check if the target file already exists
     _, err := os.Stat(file_name)
     if !os.IsNotExist(err) {
         if !force {
-            log.Fatalf("Cannot create '%v' cause the file already exists. (use -f to overwrite)\n", file_name)
+            log.Fatalf("Cannot create file '%v' which already exists. (use -f to overwrite)\n", file_name)
+        } else {
+            overwritten = true
         }
     }
 
@@ -63,7 +63,7 @@ func create_json(json_name string, verbose bool, force bool) {
     "name": "",
     "description": "",
     "category": "",     // optional
-    "keywords": [""],   // optional, for searching
+    "keywords": [""],   // optional
     "author": {"name": "", "email": ""},
     "contributors":     // optional
     [
@@ -80,7 +80,11 @@ func create_json(json_name string, verbose bool, force bool) {
         log.Fatalln(err)
     }
 
-    fmt.Printf("Successfully created '%v'!\n", file_name)
+    if overwritten {
+        fmt.Printf("Successfully overwritten '%v'.\n", file_name)
+    } else {
+        fmt.Printf("Successfully created '%v'.\n", file_name)
+    }
 }
 
 func print_create_help() {
@@ -90,7 +94,7 @@ gopm create <package>:
     'gopm publish <package.json>' to upload the information to the index server, make the package available to others.
 
 options:
-    -v, -verbose    verbose
+    -f, -force      force overwrite existing file
     -h, -help       show help info
 
 `)

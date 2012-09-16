@@ -31,13 +31,13 @@ func cmd_publish(args []string) {
     }
 
     // get package folder
-    folders := f.Args()
-    if len(folders) == 0 {
-        fmt.Print("\nPlease provide a path to your package.\n")
+    json_names := f.Args()
+    if len(json_names) == 0 {
+        fmt.Print("\nPlease provide a <package>.json file to publish.\n")
         print_publish_help()
         return
     }
-    folder := folders[0]
+    folder := json_names[0]
 
     // read package.json in the folder
     json_file_name := path.Join(folder, "package.json")
