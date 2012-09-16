@@ -60,16 +60,16 @@ func create_json(json_name string, force bool) {
     defer json_file.Close()
 
     content := `{
-    "name": "",
-    "description": "",
-    "category": "",     // optional
-    "keywords": [""],   // optional
-    "author": {"name": "", "email": ""},
+    "name": "", // required. unique name to identify your package
+    "description": "", // required.
+    "category": "",     // optional. for searching purpose
+    "keywords": [""],   // optional. for searching purpose
+    "author": {"name": "", "email": ""}, // required.
     "contributors":     // optional
     [
         {"name": "", "email": ""}
     ],
-    "repositories":
+    "repositories": // required. list all your repositories
     [
         ""
     ]

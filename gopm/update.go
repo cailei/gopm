@@ -4,13 +4,12 @@ import (
     "flag"
     "fmt"
     "io"
+    "io/ioutil"
     "log"
-    "net/http"
     "os"
 )
 
-var remote_index_url string = "http://localhost:8080/all"
-var local_index_url string = "my_index.json"
+var local_db string = "my_index.json"
 
 func cmd_update(args []string) {
     // parse flags
@@ -26,26 +25,39 @@ func cmd_update(args []string) {
         return
     }
 
-    // request the index content
-    response, err := http.Get(remote_index_url)
+    // open a temporary file to receive the index
+    temp_file, err := ioutil.TempFile("", "gopm_local_db_")
     if err != nil {
-        log.Fatal(err)
+        log.Fatalln(err)
+    }
+    defer func() {
+        temp_file.Close()
+        os.Remove(temp_file.Name())
+    }()
+
+    // open remote db
+    remote_db := agent_get_full_index_reader()
+
+    // write index content to the temp file
+    _, err = io.Copy(temp_file, remote_db)
+    if err != nil {
+        log.Fatalln(err)
     }
 
-    file, err := os.Create(local_index_url)
+    // copy temp file content to the local db file
+    db_file, err := os.Create(local_db)
     if err != nil {
-        log.Fatal(err)
+        log.Fatalln(err)
     }
-    defer file.Close()
+    defer db_file.Close()
 
-    // write index content to local file
-    bytes, err := io.Copy(file, response.Body)
+    temp_file.Seek(0, os.SEEK_SET)
+    copyed_bytes, err := io.Copy(db_file, temp_file)
     if err != nil {
-        os.Remove(local_index_url)
-        log.Fatal(err)
+        log.Fatalln(err)
     }
 
-    fmt.Printf("Successfully updated index! [total bytes: %v]\n", bytes)
+    fmt.Printf("Successfully updated index! [total bytes: %v]\n", copyed_bytes)
 }
 
 func print_update_help() {

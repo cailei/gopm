@@ -8,8 +8,8 @@ import (
     "github.com/kr/pretty"
     "io/ioutil"
     "log"
+    "net/http"
     "os"
-    "path"
 )
 
 func cmd_publish(args []string) {
@@ -37,11 +37,15 @@ func cmd_publish(args []string) {
         print_publish_help()
         return
     }
-    folder := json_names[0]
 
-    // read package.json in the folder
-    json_file_name := path.Join(folder, "package.json")
-    json_file, err := os.Open(json_file_name)
+    for i := 0; i < len(json_names); i++ {
+        publish_package(json_names[i], verbose)
+    }
+}
+
+func publish_package(json_name string, verbose bool) {
+    // read json content
+    json_file, err := os.Open(json_name)
     if err != nil {
         log.Fatalln(err)
     }
@@ -60,8 +64,23 @@ func cmd_publish(args []string) {
 
     // check mandatory fields
     if meta.Name == "" {
-        log.Fatalln("package.json: 'name' is empty")
+        log.Fatalf("%v: 'name' is empty\n", json_name)
     }
+    if meta.Description == "" {
+        log.Fatalf("%v: 'description' is empty\n", json_name)
+    }
+    if meta.Author.Name == "" {
+        log.Fatalf("%v: 'author.name' is empty\n", json_name)
+    }
+    if meta.Repositories == nil {
+        log.Fatalf("%v: 'repositories' is missing\n", json_name)
+    }
+    if len(meta.Repositories) == 0 {
+        log.Fatalf("%v: 'repositories' is empty\n", json_name)
+    }
+
+    // check the name's uniqueness
+    http.Get("url")
 
     pretty.Printf("%#v\n", meta)
 }
