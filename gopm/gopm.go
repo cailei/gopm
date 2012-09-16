@@ -55,8 +55,9 @@ Usage: 'gopm <command> <options>'
 
 where <command> is one of:
 
-    update      update package index to the latest
+    update      update your local package index
     search      search for packages
+    show        show detailed information for packages
     install     install a package
     create      create your own package
     publish     publish your package to the central index database
