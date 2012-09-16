@@ -92,7 +92,8 @@ func print_create_help() {
 gopm create <package>:
     this wil create a <package.json> file containing information for your
     package, you should modify this file to fill in the fields manually, then
-    'gopm publish <package.json>' to upload the information to the index server.
+    run 'gopm publish <package.json>' to upload the information to the index
+    server.
 
 options:
     -f, -force      force overwrite existing file
