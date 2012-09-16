@@ -1,4 +1,4 @@
 gopm
 ====
 
-A go package manager, like node.js' npm (not done yet!)
+A simple go package manager. (not done yet!)
