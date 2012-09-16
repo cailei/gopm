@@ -5,19 +5,21 @@ import (
     "fmt"
     "log"
     "os"
-    "path"
 )
 
 func cmd_create(args []string) {
     // parse flags
     var help bool
     var verbose bool
+    var force bool
 
     f := flag.NewFlagSet("create_flags", flag.ExitOnError)
     f.BoolVar(&help, "help", false, "show help info")
     f.BoolVar(&help, "h", false, "show help info")
     f.BoolVar(&verbose, "verbose", false, "verbose")
     f.BoolVar(&verbose, "v", false, "verbose")
+    f.BoolVar(&force, "force", false, "force overwrite")
+    f.BoolVar(&force, "f", false, "force overwrite")
     f.Usage = print_create_help
     f.Parse(args)
 
@@ -27,32 +29,31 @@ func cmd_create(args []string) {
     }
 
     // get package folder
-    folders := f.Args()
-    if len(folders) == 0 {
-        fmt.Print("\nPlease provide target folder of your package.\n")
+    jsons := f.Args()
+    if len(jsons) == 0 {
+        fmt.Print("\nPlease give a name for your <package>.json.\n")
         print_create_help()
         return
     }
-    folder := folders[0]
 
-    // exit if the target folder already exists
-    _, err := os.Stat(folder)
+    for i := 0; i < len(jsons); i++ {
+        create_json(jsons[i], verbose, force)
+    }
+}
+
+func create_json(json_name string, verbose bool, force bool) {
+    file_name := json_name + ".json"
+
+    // check if the target file already exists
+    _, err := os.Stat(file_name)
     if !os.IsNotExist(err) {
-        log.Fatalf("Cannot create a package at '%v' cause the folder already exists.\n", folder)
+        if !force {
+            log.Fatalf("Cannot create '%v' cause the file already exists. (use -f to overwrite)\n", file_name)
+        }
     }
 
-    // create package folder
-    if err := os.MkdirAll(folder, os.ModeDir|0755); err != nil {
-        log.Fatalln(err)
-    }
-
-    if verbose {
-        fmt.Printf("Created folder '%v'\n", folder)
-    }
-
-    // create 'package.json'
-    json_file_name := path.Join(folder, "package.json")
-    json_file, err := os.Create(json_file_name)
+    // create '<name>.json'
+    json_file, err := os.Create(file_name)
     if err != nil {
         log.Fatal(err)
     }
@@ -79,12 +80,7 @@ func cmd_create(args []string) {
         log.Fatalln(err)
     }
 
-    if verbose {
-        fmt.Printf("Created 'package.json'\n")
-    }
-
-    fmt.Printf("Successful!\n")
-
+    fmt.Printf("Successfully created '%v'!\n", file_name)
 }
 
 func print_create_help() {
