@@ -37,10 +37,10 @@ func main() {
     }
 
     cmd := args[1]
-    fun, cmd_is_valid := cmd_map[cmd]
+    fun, is_cmd_valid := cmd_map[cmd]
 
     // invoked with a invalid command
-    if !cmd_is_valid {
+    if !is_cmd_valid {
         fmt.Printf("\n'%v' is not a valid command, see 'gopm help'\n\n", cmd)
         return
     }
