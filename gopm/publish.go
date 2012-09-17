@@ -4,11 +4,9 @@ import (
     "encoding/json"
     "flag"
     "fmt"
-    "github.com/cailei/gopm_index"
-    "github.com/kr/pretty"
+    "github.com/cailei/gopm_index/gopm_index"
     "io/ioutil"
     "log"
-    "net/http"
     "os"
 )
 
@@ -79,10 +77,16 @@ func publish_package(json_name string, verbose bool) {
         log.Fatalf("%v: 'repositories' is empty\n", json_name)
     }
 
-    // check the name's uniqueness
-    http.Get("url")
+    // check name uniqueness on the server
+    exists := agent_package_name_exists(meta.Name)
+    if exists {
+        log.Fatalf("The package name '%v' already exists in the index.\n", meta.Name)
+    }
 
-    pretty.Printf("%#v\n", meta)
+    // post the json to the server
+    agent_upload_package(meta)
+
+    fmt.Printf("Successfully publish package '%v'\n", meta.Name)
 }
 
 func print_publish_help() {
