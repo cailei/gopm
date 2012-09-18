@@ -43,24 +43,19 @@ func agent_upload_package(meta gopm_index.PackageMeta) {
         log.Fatalln(err)
     }
 
-    // check response
-    if response.StatusCode != 200 {
-        log.Fatalln(response.Status)
-    }
-
     body, err := ioutil.ReadAll(response.Body)
     defer response.Body.Close()
     if err != nil {
         log.Fatalln(err)
     }
 
-    succ, err := strconv.ParseBool(string(body))
-    if err != nil {
-        log.Fatalln(err)
+    if len(body) > 0 {
+        fmt.Println(string(body))
     }
 
-    if !succ {
-        log.Fatalln("Unknown error!")
+    // check response
+    if response.StatusCode != 200 {
+        log.Fatalln(response.Status)
     }
 }
 
