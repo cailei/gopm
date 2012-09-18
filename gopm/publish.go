@@ -77,12 +77,6 @@ func publish_package(json_name string, verbose bool) {
         log.Fatalf("%v: 'repositories' is empty\n", json_name)
     }
 
-    // check name uniqueness on the server
-    exists := agent_package_name_exists(meta.Name)
-    if exists {
-        log.Fatalf("The package name '%v' already exists in the index.\n", meta.Name)
-    }
-
     // post the json to the server
     agent_upload_package(meta)
 
