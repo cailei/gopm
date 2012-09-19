@@ -5,6 +5,7 @@ import (
     "fmt"
     "log"
     "os"
+    "strings"
 )
 
 func cmd_create(args []string) {
@@ -39,7 +40,11 @@ func cmd_create(args []string) {
 }
 
 func create_json(json_name string, force bool) {
-    file_name := json_name + ".json"
+    file_name := json_name
+    if !strings.HasSuffix(file_name, ".json") {
+        file_name = json_name + ".json"
+    }
+
     overwritten := false
 
     // check if the target file already exists
