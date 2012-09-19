@@ -8,7 +8,6 @@ import (
     "log"
     "net/http"
     "net/url"
-    "strconv"
 )
 
 var remote_db_host string = "http://localhost:8080"
@@ -16,16 +15,6 @@ var remote_db_host string = "http://localhost:8080"
 func agent_get_full_index_reader() io.ReadCloser {
     request := remote_db_host + "/all"
     return _get_body_reader(request)
-}
-
-func agent_package_name_exists(name string) bool {
-    request := fmt.Sprintf("%v/name_exists?name=%v", remote_db_host, name)
-    content := _get_body_content(request)
-    exists, err := strconv.ParseBool(content)
-    if err != nil {
-        log.Fatalln(err)
-    }
-    return exists
 }
 
 func agent_upload_package(meta gopm_index.PackageMeta) {
@@ -68,19 +57,17 @@ func _get_body_reader(request string) io.ReadCloser {
 
     // check response
     if response.StatusCode != 200 {
+        body, err := ioutil.ReadAll(response.Body)
+        if err != nil {
+            log.Fatalln(err)
+        }
+
+        if len(body) > 0 {
+            fmt.Println(string(body))
+        }
+
         log.Fatalln(response.Status)
     }
 
     return response.Body
-}
-
-func _get_body_content(request string) string {
-    body_reader := _get_body_reader(request)
-    defer body_reader.Close()
-
-    data, err := ioutil.ReadAll(body_reader)
-    if err != nil {
-        log.Fatalln(err)
-    }
-    return string(data)
 }
