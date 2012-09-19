@@ -6,6 +6,7 @@
             "file_include_patterns":
             [
                 "README.md",
+                "LICENSE",
                 "*.go",
                 ".gitignore",
                 "*.sublime-project",
