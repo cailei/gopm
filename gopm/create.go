@@ -64,10 +64,10 @@ func create_json(json_name string, force bool) {
     "description": "",
     "category": "",
     "keywords": [""],
-    "author": {"name": "", "email": ""},
+    "author": ["", ""],
     "contributors":
     [
-        {"name": "", "email": ""}
+        ["", ""]
     ],
     "repositories":
     [

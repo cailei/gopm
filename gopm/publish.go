@@ -67,7 +67,7 @@ func publish_package(json_name string, verbose bool) {
     if meta.Description == "" {
         log.Fatalf("%v: 'description' is empty\n", json_name)
     }
-    if meta.Author.Name == "" {
+    if meta.Author[0] == "" {
         log.Fatalf("%v: 'author.name' is empty\n", json_name)
     }
     if meta.Repositories == nil {
