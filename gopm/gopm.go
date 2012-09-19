@@ -2,6 +2,7 @@ package main
 
 import (
     "fmt"
+    "log"
     "os"
 )
 
@@ -17,6 +18,8 @@ var cmd_map = map[string]command_fun{
 }
 
 func main() {
+    log.SetFlags(log.Lshortfile)
+
     args := os.Args
 
     // invoked without command
