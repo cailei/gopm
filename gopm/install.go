@@ -27,6 +27,7 @@ package main
 
 import (
     "flag"
+    "fmt"
 )
 
 func cmd_install(args []string) {
@@ -42,13 +43,15 @@ func cmd_install(args []string) {
         return
     }
 
-    pkgs := f.Args()
+    db := openLocalDB()
+    names := f.Args()
+    pkgs := db.searchPackages(names)
 }
 
 func print_install_help() {
     fmt.Print(`
-gopm search <keywords>:
-    search for a package by name or keywords.
+gopm install <pkg1> [pkg2...]:
+    install packages.
 
 options:
     -h, -help       show help info

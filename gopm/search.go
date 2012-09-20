@@ -50,52 +50,11 @@ func cmd_search(args []string) {
     }
 
     keywords := f.Args()
-
-    // open local index file for read
-    file, err := os.Open(local_db)
-    if err != nil {
-        log.Fatalln(err)
-    }
-    defer file.Close()
-
-    // use a bufio.Reader to read the index content
-    r := bufio.NewReader(file)
-
-    for {
-        // read next line
-        line, err := r.ReadString('\n')
-
-        if err != nil && err != io.EOF {
-            log.Fatalln(err)
-        }
-
-        // exit if EOF
-        if err == io.EOF {
-            break
-        }
-
-        // construt a PackageMeta from the line
-        var meta index.PackageMeta
-        err = meta.FromJson([]byte(line))
-        if err != nil {
-            log.Fatalln(err)
-        }
-
-        // search all keywords in package name and description
-        text := meta.Name + "." + meta.Description
-        all_match := true
-        for _, w := range keywords {
-            if !strings.Contains(text, w) {
-                all_match = false
-                break
-            }
-        }
-
-        // all keywords is contained in this line
-        if all_match {
-            // print package name and description
-            fmt.Printf("%v\t%v\n", meta.Name, meta.Description)
-        }
+    db := openLocalDB()
+    pkgs := db.searchPackages(keywords)
+    for _, p := range pkgs {
+        // print package name and description
+        fmt.Printf("%v\t%v\n", p.Name, p.Description)
     }
 }
 
