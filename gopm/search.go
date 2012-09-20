@@ -64,10 +64,23 @@ func cmd_search(args []string) {
             log.Fatalln(err)
         }
 
-        // search all keywords in this line
+        // exit if EOF
+        if err == io.EOF {
+            break
+        }
+
+        // construt a PackageMeta from the line
+        var meta index.PackageMeta
+        err = meta.FromJson([]byte(line))
+        if err != nil {
+            log.Fatalln(err)
+        }
+
+        // search all keywords in package name and description
+        text := meta.Name + "." + meta.Description
         all_match := true
         for _, w := range keywords {
-            if !strings.Contains(line, w) {
+            if !strings.Contains(text, w) {
                 all_match = false
                 break
             }
@@ -75,26 +88,10 @@ func cmd_search(args []string) {
 
         // all keywords is contained in this line
         if all_match {
-            output_package(line)
-        }
-
-        // exit if EOF
-        if err == io.EOF {
-            break
+            // print package name and description
+            fmt.Printf("%v\t%v\n", meta.Name, meta.Description)
         }
     }
-}
-
-func output_package(line string) {
-    // construt a PackageMeta from the line
-    var meta index.PackageMeta
-    err := meta.FromJson([]byte(line))
-    if err != nil {
-        log.Fatalln(err)
-    }
-
-    // print package name and description
-    fmt.Printf("%v\t%v\n", meta.Name, meta.Description)
 }
 
 func print_search_help() {
