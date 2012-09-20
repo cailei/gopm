@@ -27,7 +27,7 @@ package main
 
 import (
     "fmt"
-    "github.com/cailei/gopm_index/gopm_index"
+    "github.com/cailei/gopm_index/gopm/index"
     "io"
     "io/ioutil"
     "log"
@@ -42,7 +42,7 @@ func agent_get_full_index_reader() io.ReadCloser {
     return _get_body_reader(request)
 }
 
-func agent_upload_package(meta gopm_index.PackageMeta) {
+func agent_upload_package(meta index.PackageMeta) {
     request := fmt.Sprintf("%v/publish", remote_db_host)
 
     // marshal PackageMeta to json

@@ -29,7 +29,7 @@ import (
     "encoding/json"
     "flag"
     "fmt"
-    "github.com/cailei/gopm_index/gopm_index"
+    "github.com/cailei/gopm_index/gopm/index"
     "io/ioutil"
     "log"
     "os"
@@ -80,7 +80,7 @@ func publish_package(json_name string, verbose bool) {
     }
 
     // unmarshal to PackageMeta object
-    var meta gopm_index.PackageMeta
+    var meta index.PackageMeta
     if err := json.Unmarshal(json_content, &meta); err != nil {
         log.Fatalln(err)
     }
