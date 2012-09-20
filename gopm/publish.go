@@ -61,12 +61,14 @@ func cmd_publish(args []string) {
         return
     }
 
+    // create a agent to access the network
+    agent := newAgent()
     for i := 0; i < len(json_names); i++ {
-        publish_package(json_names[i], verbose)
+        publish_package(agent, json_names[i], verbose)
     }
 }
 
-func publish_package(json_name string, verbose bool) {
+func publish_package(agent *Agent, json_name string, verbose bool) {
     // read json content
     json_file, err := os.Open(json_name)
     if err != nil {
@@ -103,7 +105,7 @@ func publish_package(json_name string, verbose bool) {
     }
 
     // post the json to the server
-    agent_upload_package(meta)
+    agent.uploadPackage(meta)
 
     fmt.Printf("Successfully publish package '%v'\n", meta.Name)
 }

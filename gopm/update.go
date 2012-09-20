@@ -61,8 +61,8 @@ func cmd_update(args []string) {
     }()
 
     // open remote db
-    remote_db := agent_get_full_index_reader()
-    defer remote_db.Close()
+    agent := newAgent()
+    remote_db := agent.getFullIndexReader()
 
     // write index content to the temp file
     _, err = io.Copy(temp_file, remote_db)

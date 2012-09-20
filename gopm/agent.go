@@ -28,21 +28,42 @@ package main
 import (
     "fmt"
     "github.com/cailei/gopm_index/gopm/index"
+    "github.com/hailiang/gosocks"
     "io"
     "io/ioutil"
     "log"
     "net/http"
     "net/url"
+    "os"
 )
 
 var remote_db_host string = "http://localhost:8080"
 
-func agent_get_full_index_reader() io.ReadCloser {
-    request := remote_db_host + "/all"
-    return _get_body_reader(request)
+type Agent struct {
+    client *http.Client
 }
 
-func agent_upload_package(meta index.PackageMeta) {
+func newAgent() *Agent {
+    client := http.DefaultClient
+
+    // check if using a proxy
+    proxy_addr := os.Getenv("GOPM_PROXY")
+    if proxy_addr != "" {
+        fmt.Printf("NOTE: Using socks5 proxy: %v\n", proxy_addr)
+        proxy := socks.DialSocksProxy(socks.SOCKS5, proxy_addr)
+        transport := &http.Transport{Dial: proxy}
+        client = &http.Client{Transport: transport}
+    }
+
+    return &Agent{client}
+}
+
+func (agent *Agent) getFullIndexReader() io.Reader {
+    request := remote_db_host + "/all"
+    return agent._get_body_reader(request)
+}
+
+func (agent *Agent) uploadPackage(meta index.PackageMeta) {
     request := fmt.Sprintf("%v/publish", remote_db_host)
 
     // marshal PackageMeta to json
@@ -73,9 +94,9 @@ func agent_upload_package(meta index.PackageMeta) {
     }
 }
 
-func _get_body_reader(request string) io.ReadCloser {
+func (agent *Agent) _get_body_reader(request string) io.ReadCloser {
     // GET the index content
-    response, err := http.Get(request)
+    response, err := agent.client.Get(request)
     if err != nil {
         log.Fatalln(err)
     }
