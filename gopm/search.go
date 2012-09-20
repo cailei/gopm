@@ -25,6 +25,82 @@ SOFTWARE.
 
 package main
 
-func cmd_search(args []string) {
+import (
+    "bufio"
+    "flag"
+    "fmt"
+    "github.com/cailei/gopm_index/gopm/index"
+    "io"
+    "log"
+    "os"
+    "strings"
+)
 
+func cmd_search(args []string) {
+    var help bool
+    f := flag.NewFlagSet("search_flags", flag.ExitOnError)
+    f.BoolVar(&help, "help", false, "show help info")
+    f.BoolVar(&help, "h", false, "show help info")
+    f.Usage = print_search_help
+    f.Parse(args)
+
+    // open local index file for read
+    file, err := os.Open(local_db)
+    if err != nil {
+        log.Fatalln(err)
+    }
+    defer file.Close()
+
+    keywords := f.Args()
+
+    // use a bufio.Reader to read the index content
+    r := bufio.NewReader(file)
+
+    for {
+        // read next line
+        line, err := r.ReadString('\n')
+
+        if err != nil && err != io.EOF {
+            log.Fatalln(err)
+        }
+
+        // exit if EOF
+        if err == io.EOF {
+            break
+        }
+
+        // construt a PackageMeta from the line
+        var meta index.PackageMeta
+        err = meta.FromJson([]byte(line))
+        if err != nil {
+            log.Fatalln(err)
+        }
+
+        // search all keywords in package name and description
+        text := meta.Name + "." + meta.Description
+        all_match := true
+        for _, w := range keywords {
+            if !strings.Contains(text, w) {
+                all_match = false
+                break
+            }
+        }
+
+        // all keywords is contained in this line
+        if all_match {
+            // print package name and description
+            fmt.Printf("%v\t%v\n", meta.Name, meta.Description)
+        }
+    }
+}
+
+func print_search_help() {
+    fmt.Print(`
+gopm search <keywords>:
+    search for a package by name or keywords.
+
+options:
+    -h, -help       show help info
+
+`)
 }

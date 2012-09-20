@@ -34,8 +34,6 @@ import (
     "os"
 )
 
-var local_db string = "my_index.json"
-
 func cmd_update(args []string) {
     // parse flags
     var help bool

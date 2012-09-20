@@ -37,8 +37,6 @@ import (
     "os"
 )
 
-var remote_db_host string = "http://localhost:8080"
-
 type Agent struct {
     client *http.Client
 }
