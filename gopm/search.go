@@ -44,14 +44,19 @@ func cmd_search(args []string) {
     f.Usage = print_search_help
     f.Parse(args)
 
+    if help {
+        print_search_help()
+        return
+    }
+
+    keywords := f.Args()
+
     // open local index file for read
     file, err := os.Open(local_db)
     if err != nil {
         log.Fatalln(err)
     }
     defer file.Close()
-
-    keywords := f.Args()
 
     // use a bufio.Reader to read the index content
     r := bufio.NewReader(file)

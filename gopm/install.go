@@ -25,6 +25,33 @@ SOFTWARE.
 
 package main
 
-func cmd_install(args []string) {
+import (
+    "flag"
+)
 
+func cmd_install(args []string) {
+    var help bool
+    f := flag.NewFlagSet("install_flags", flag.ExitOnError)
+    f.BoolVar(&help, "help", false, "show help info")
+    f.BoolVar(&help, "h", false, "show help info")
+    f.Usage = print_install_help
+    f.Parse(args)
+
+    if help {
+        print_install_help()
+        return
+    }
+
+    pkgs := f.Args()
+}
+
+func print_install_help() {
+    fmt.Print(`
+gopm search <keywords>:
+    search for a package by name or keywords.
+
+options:
+    -h, -help       show help info
+
+`)
 }
