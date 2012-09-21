@@ -2,8 +2,8 @@ package main
 
 import (
     "bufio"
-    "fmt"
     "github.com/cailei/gopm_index/gopm/index"
+    "io"
     "log"
     "os"
     "runtime"
@@ -18,103 +18,59 @@ func openLocalDB() *LocalDB {
     db := new(LocalDB)
 
     // open local index file for read
+    var err error
     db.file, err = os.Open(local_db)
     if err != nil {
         log.Fatalln(err)
     }
 
     // use a bufio.Reader to read the index content
-    db.reader = bufio.NewReader(file)
+    db.reader = bufio.NewReader(db.file)
 
-    runtime.SetFinalizer(&db, func(db *LocalDB) { db.file.Close() })
+    // auto Close() when GC
+    runtime.SetFinalizer(db, func(db *LocalDB) { db.file.Close() })
 
     return db
 }
 
-func (db *LocalDB) searchPackages(keywords []string, match_pred MatchPred) []index.PackageMeta {
-    return db.matchPackages(keywords, matchPredForSearch)
-}
-
-func (db *LocalDB) getPackagesByNames(names []string) []index.PackageMeta {
-    pkgs := db.matchPackages(keywords, matchPredForInstall)
-    if len(pkgs) == 0 {
-        pkgs = db.matchPackages(keywords, matchPredForSimilarName)
-        if len(pkgs) == 0 {
-            fmt.Printf("Cannot find packages\n")
-        } else {
-            fmt.Printf("Did you mean")
-        }
-    }
-}
-
-type MatchPred func(meta index.PackageMeta, keywords []string) bool
-
-func (db *LocalDB) matchPackages(keywords []string, match_pred MatchPred) []index.PackageMeta {
+func (db *LocalDB) FirstPackage() (pkg *index.PackageMeta, err error) {
     db.file.Seek(0, os.SEEK_SET)
-
-    var pkgs []index.PackageMeta
-
-    for {
-        // read next line
-        line, err := db.reader.ReadString('\n')
-
-        if err != nil && err != io.EOF {
-            log.Fatalln(err)
-        }
-
-        // exit if EOF
-        if err == io.EOF {
-            break
-        }
-
-        // construct a PackageMeta from the line
-        var meta index.PackageMeta
-        err = meta.FromJson([]byte(line))
-        if err != nil {
-            log.Fatalln(err)
-        }
-
-        // search for all keywords in package name and description
-        if match_pred(meta, keywords) {
-            pkgs = append(pkgs, meta)
-        }
-    }
-
-    return pkgs
+    pkg, err = db.readPackage()
+    return
 }
 
-func matchPredForSearch(meta index.PackageMeta, keywords []string) bool {
-    text := meta.Name + "." + meta.Description
-    all_match := true
-    for _, w := range keywords {
-        if !strings.Contains(text, w) {
-            all_match = false
-            break
-        }
-    }
-    return all_match
+func (db *LocalDB) NextPackage() (pkg *index.PackageMeta, err error) {
+    pkg, err = db.readPackage()
+    return
 }
 
-func matchPredForInstall(meta index.PackageMeta, keywords []string) bool {
-    text := meta.Name
-    all_match := true
-    for _, w := range keywords {
-        if text != w {
-            all_match = false
-            break
-        }
+func (db *LocalDB) readPackage() (pkg *index.PackageMeta, err error) {
+    pkg = nil
+
+    line, err := db.readLine()
+    if err != nil {
+        return
     }
-    return all_match
+
+    // construct a PackageMeta from the line
+    var meta index.PackageMeta
+    err = meta.FromJson([]byte(line))
+    if err != nil {
+        return
+    }
+
+    pkg = &meta
+    err = nil
+    return
 }
 
-func matchPredForSimilarName(meta index.PackageMeta, keywords []string) bool {
-    text := meta.Name
-    all_match := true
-    for _, w := range keywords {
-        if !strings.Contains(text, w) {
-            all_match = false
-            break
-        }
+func (db *LocalDB) readLine() (line string, err error) {
+    line, err = db.reader.ReadString('\n')
+
+    // EOF is not an error
+    if err == io.EOF {
+        err = nil
     }
-    return all_match
+
+    return
 }

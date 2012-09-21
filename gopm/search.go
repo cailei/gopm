@@ -26,13 +26,12 @@ SOFTWARE.
 package main
 
 import (
-    "bufio"
     "flag"
     "fmt"
-    "github.com/cailei/gopm_index/gopm/index"
-    "io"
+    // "github.com/cailei/gopm_index/gopm/index"
+    // "io"
     "log"
-    "os"
+    // "os"
     "strings"
 )
 
@@ -51,10 +50,27 @@ func cmd_search(args []string) {
 
     keywords := f.Args()
     db := openLocalDB()
-    pkgs := db.searchPackages(keywords)
-    for _, p := range pkgs {
-        // print package name and description
-        fmt.Printf("%v\t%v\n", p.Name, p.Description)
+
+    for pkg, err := db.FirstPackage(); pkg != nil; pkg, err = db.NextPackage() {
+        if err != nil {
+            log.Fatalln(err)
+        }
+
+        text := pkg.Name + "." + strings.Join(pkg.Keywords, ".") + "." + pkg.Description
+
+        all_match := true
+        for _, w := range keywords {
+            if !strings.Contains(text, w) {
+                all_match = false
+                break
+            }
+        }
+
+        if all_match {
+            // print package name and description
+            fmt.Printf("%v\t%v\n", pkg.Name, pkg.Description)
+        }
+
     }
 }
 

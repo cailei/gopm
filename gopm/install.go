@@ -43,9 +43,9 @@ func cmd_install(args []string) {
         return
     }
 
-    db := openLocalDB()
-    names := f.Args()
-    pkgs := db.searchPackages(names)
+    // db := openLocalDB()
+    // names := f.Args()
+    //pkgs := db.searchPackages(names)
 }
 
 func print_install_help() {
