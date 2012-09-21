@@ -28,6 +28,9 @@ package main
 import (
     "flag"
     "fmt"
+    "github.com/cailei/gopm_index/gopm/index"
+    "log"
+    "strings"
 )
 
 func cmd_install(args []string) {
@@ -43,9 +46,52 @@ func cmd_install(args []string) {
         return
     }
 
-    // db := openLocalDB()
-    // names := f.Args()
-    //pkgs := db.searchPackages(names)
+    db := openLocalDB()
+    names := f.Args()
+
+    var exact_matches []*index.PackageMeta
+    var partial_matches []*index.PackageMeta
+
+    for pkg, err := db.FirstPackage(); pkg != nil; pkg, err = db.NextPackage() {
+        if err != nil {
+            log.Fatalln(err)
+        }
+
+        low_pkg_name := strings.ToLower(pkg.Name)
+
+        for _, name := range names {
+            low_name := strings.ToLower(name)
+            if low_pkg_name == low_name {
+                exact_matches = append(exact_matches, pkg)
+            } else if strings.Contains(low_pkg_name, low_name) {
+                partial_matches = append(partial_matches, pkg)
+            }
+        }
+    }
+
+    if len(partial_matches) > 0 {
+        fmt.Println("Some packages cannot find a match, did you mean:")
+        for _, p := range partial_matches {
+            fmt.Printf("\t%v\n", p.Name)
+        }
+        return
+    }
+
+    if len(exact_matches) == 0 {
+        fmt.Printf("Found nothing!\n")
+    }
+
+    for _, p := range exact_matches {
+        install_package(p)
+    }
+}
+
+func install_package(pkg *index.PackageMeta) bool {
+    for _, repo := range pkg.Repositories {
+        fmt.Printf("go get %v\n", repo)
+        break
+    }
+    return true
 }
 
 func print_install_help() {
