@@ -46,8 +46,13 @@ func cmd_install(args []string) {
         return
     }
 
-    db := openLocalDB()
     names := f.Args()
+    if len(names) == 0 {
+        fmt.Println("Please specify the packages you want to install.")
+        return
+    }
+
+    db := openLocalDB()
 
     var exact_matches []*index.PackageMeta
     var partial_matches []*index.PackageMeta
@@ -98,6 +103,12 @@ func print_install_help() {
     fmt.Print(`
 gopm install <pkg1> [pkg2...]:
     install packages.
+
+    this command will invoke 'go get' to get the job done, you may specify any valid 'go get' flags (see 'go get -h') in the command line, and they will be passed directly to the 'go get'.
+
+e.g.
+    'gopm install -u <package>'     install or upgrade a package
+    'gopm install -a <package>'     install or upgrade a package
 
 options:
     -h, -help       show help info
