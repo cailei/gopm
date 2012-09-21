@@ -25,5 +25,26 @@ SOFTWARE.
 
 package main
 
+import (
+    "log"
+    "os"
+    "path"
+)
+
 var remote_db_host string = "http://localhost:8080"
-var local_db string = "my_index.json"
+var local_db_url string
+
+func init() {
+    goroot := os.Getenv("GOROOT")
+    if goroot == "" {
+        log.Fatalln("Environment $GOROOT was not defined, gopm need this to put index file.")
+    }
+
+    // make sure the db dir exists
+    db_dir := path.Join(goroot, "misc", "gopm")
+    _, err := os.Stat(db_dir)
+    if os.IsNotExist(err) {
+        os.MkdirAll(db_dir, 0755)
+    }
+    local_db_url = path.Join(db_dir, "gopm.index")
+}

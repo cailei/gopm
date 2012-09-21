@@ -19,7 +19,7 @@ func openLocalDB() *LocalDB {
 
     // open local index file for read
     var err error
-    db.file, err = os.Open(local_db)
+    db.file, err = os.Open(local_db_url)
     if err != nil {
         log.Fatalln(err)
     }

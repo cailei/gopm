@@ -69,7 +69,7 @@ func cmd_update(args []string) int {
     }
 
     // copy temp file content to the local db file
-    db_file, err := os.Create(local_db)
+    db_file, err := os.Create(local_db_url)
     if err != nil {
         log.Fatalln(err)
     }
