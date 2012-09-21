@@ -35,7 +35,7 @@ import (
     "strings"
 )
 
-func cmd_search(args []string) {
+func cmd_search(args []string) int {
     var help bool
     f := flag.NewFlagSet("search_flags", flag.ExitOnError)
     f.BoolVar(&help, "help", false, "show help info")
@@ -45,7 +45,7 @@ func cmd_search(args []string) {
 
     if help {
         print_search_help()
-        return
+        return 0
     }
 
     keywords := f.Args()
@@ -70,8 +70,9 @@ func cmd_search(args []string) {
             // print package name and description
             fmt.Printf("%v\t%v\n", pkg.Name, pkg.Description)
         }
-
     }
+
+    return 0
 }
 
 func print_search_help() {

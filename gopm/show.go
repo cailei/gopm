@@ -25,6 +25,6 @@ SOFTWARE.
 
 package main
 
-func cmd_show(args []string) {
-
+func cmd_show(args []string) int {
+    return 0
 }

@@ -35,7 +35,7 @@ import (
     "os"
 )
 
-func cmd_publish(args []string) {
+func cmd_publish(args []string) int {
     // parse flags
     var help bool
     var verbose bool
@@ -50,7 +50,7 @@ func cmd_publish(args []string) {
 
     if help {
         print_publish_help()
-        return
+        return 0
     }
 
     // get package folder
@@ -58,7 +58,7 @@ func cmd_publish(args []string) {
     if len(json_names) == 0 {
         fmt.Print("\nPlease provide a <package>.json file to publish.\n")
         print_publish_help()
-        return
+        return -1
     }
 
     // create a agent to access the network
@@ -66,6 +66,8 @@ func cmd_publish(args []string) {
     for i := 0; i < len(json_names); i++ {
         publish_package(agent, json_names[i], verbose)
     }
+
+    return 0
 }
 
 func publish_package(agent *Agent, json_name string, verbose bool) {

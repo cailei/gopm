@@ -34,7 +34,7 @@ import (
     "os"
 )
 
-func cmd_update(args []string) {
+func cmd_update(args []string) int {
     // parse flags
     var help bool
     f := flag.NewFlagSet("update_flags", flag.ExitOnError)
@@ -45,7 +45,7 @@ func cmd_update(args []string) {
 
     if help {
         print_update_help()
-        return
+        return 0
     }
 
     // open a temporary file to receive the index
@@ -82,6 +82,7 @@ func cmd_update(args []string) {
     }
 
     fmt.Printf("Successfully updated index! [total bytes: %v]\n", copyed_bytes)
+    return 0
 }
 
 func print_update_help() {

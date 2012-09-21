@@ -30,26 +30,29 @@ import (
     "fmt"
     "github.com/cailei/gopm_index/gopm/index"
     "log"
+    "os/exec"
     "strings"
 )
 
-func cmd_install(args []string) {
+func cmd_install(args []string) int {
+    known, unknown := extract_unknown_flags(args)
+
     var help bool
     f := flag.NewFlagSet("install_flags", flag.ExitOnError)
     f.BoolVar(&help, "help", false, "show help info")
     f.BoolVar(&help, "h", false, "show help info")
     f.Usage = print_install_help
-    f.Parse(args)
+    f.Parse(known)
 
     if help {
         print_install_help()
-        return
+        return 0
     }
 
     names := f.Args()
     if len(names) == 0 {
         fmt.Println("Please specify the packages you want to install.")
-        return
+        return -1
     }
 
     db := openLocalDB()
@@ -79,24 +82,79 @@ func cmd_install(args []string) {
         for _, p := range partial_matches {
             fmt.Printf("\t%v\n", p.Name)
         }
-        return
+        return -1
     }
 
     if len(exact_matches) == 0 {
         fmt.Printf("Found nothing!\n")
     }
 
+    var failed_pkgs []string
     for _, p := range exact_matches {
-        install_package(p)
+        succ := install_package(p, unknown)
+        if !succ {
+            failed_pkgs = append(failed_pkgs, p.Name)
+        }
     }
+
+    if len(failed_pkgs) > 0 {
+        fmt.Println("These packages failed to install:")
+        for _, name := range failed_pkgs {
+            fmt.Printf("\t%v\n", name)
+        }
+        return -1
+    }
+
+    return 0
 }
 
-func install_package(pkg *index.PackageMeta) bool {
+func install_package(pkg *index.PackageMeta, args []string) bool {
+    fmt.Printf("Installing %v\n", pkg.Name)
+
+    // try installing from repos
+    succ := false
     for _, repo := range pkg.Repositories {
-        fmt.Printf("go get %v\n", repo)
-        break
+        succ = install_from_repo(repo, args)
+        if succ {
+            break
+        }
+    }
+
+    if !succ {
+        fmt.Println("Installation failed on all repos")
+    }
+
+    return succ
+}
+
+func install_from_repo(repo string, args []string) bool {
+    var cmd_line []string
+    cmd_line = append(cmd_line, []string{"go", "get"}...)
+    cmd_line = append(cmd_line, args...)
+    cmd_line = append(cmd_line, repo)
+    //fmt.Printf("Running command: %v\n", cmd_line)
+    cmd := exec.Command("go", cmd_line...)
+    err := cmd.Run()
+    if err != nil {
+        fmt.Println(err)
+        return false
     }
     return true
+}
+
+func extract_unknown_flags(args []string) (known []string, unknown []string) {
+    for _, a := range args {
+        if strings.HasPrefix(a, "-") {
+            if a == "-h" || a == "--help" {
+                known = append(known, a)
+            } else {
+                unknown = append(unknown, a)
+            }
+        } else {
+            known = append(known, a)
+        }
+    }
+    return
 }
 
 func print_install_help() {
