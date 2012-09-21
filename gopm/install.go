@@ -30,6 +30,7 @@ import (
     "fmt"
     "github.com/cailei/gopm_index/gopm/index"
     "log"
+    "os"
     "os/exec"
     "strings"
 )
@@ -109,19 +110,14 @@ func cmd_install(args []string) int {
 }
 
 func install_package(pkg *index.PackageMeta, args []string) bool {
-    fmt.Printf("Installing %v\n", pkg.Name)
-
     // try installing from repos
     succ := false
     for _, repo := range pkg.Repositories {
+        fmt.Printf("Installing '%v' from (%v)\n", pkg.Name, repo)
         succ = install_from_repo(repo, args)
         if succ {
             break
         }
-    }
-
-    if !succ {
-        fmt.Println("Installation failed on all repos")
     }
 
     return succ
@@ -129,16 +125,22 @@ func install_package(pkg *index.PackageMeta, args []string) bool {
 
 func install_from_repo(repo string, args []string) bool {
     var cmd_line []string
-    cmd_line = append(cmd_line, []string{"go", "get"}...)
+    cmd_line = append(cmd_line, "get")
     cmd_line = append(cmd_line, args...)
     cmd_line = append(cmd_line, repo)
-    //fmt.Printf("Running command: %v\n", cmd_line)
+
     cmd := exec.Command("go", cmd_line...)
+    cmd.Stdin = os.Stdin
+    cmd.Stdout = os.Stdout
+    cmd.Stderr = os.Stderr
     err := cmd.Run()
     if err != nil {
-        fmt.Println(err)
+        //fmt.Println(err)
+        fmt.Println("Failed.\n")
         return false
     }
+
+    fmt.Println("Done.\n")
     return true
 }
 
@@ -165,8 +167,8 @@ gopm install <pkg1> [pkg2...]:
     this command will invoke 'go get' to get the job done, you may specify any valid 'go get' flags (see 'go get -h') in the command line, and they will be passed directly to the 'go get'.
 
 e.g.
-    'gopm install -u <package>'     install or upgrade a package
-    'gopm install -a <package>'     install or upgrade a package
+    'gopm install -u <package>'     install or upgrade a package from network
+    'gopm install -v <package>'     install a package and be verbose
 
 options:
     -h, -help       show help info
