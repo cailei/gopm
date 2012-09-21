@@ -92,14 +92,15 @@ func create_json(json_name string, force bool) {
     defer json_file.Close()
 
     content := `{
-    "name": "",
-    "description": "",
+    "name": "<package name>",
+    "description": "<some description>",
     "category": "",
     "keywords": [""],
-    "author": ["", ""],
+    "author": ["your name", "your email"],
     "contributors":
     [
-        ["", ""]
+        "contributor_a's name", "email"
+        "contributor_b's name", "email"
     ],
     "repositories":
     [
