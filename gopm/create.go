@@ -33,7 +33,7 @@ import (
     "strings"
 )
 
-func cmd_create(args []string) {
+func cmd_create(args []string) int {
     // parse flags
     var help bool
     var force bool
@@ -48,7 +48,7 @@ func cmd_create(args []string) {
 
     if help {
         print_create_help()
-        return
+        return 0
     }
 
     // get package folder
@@ -56,12 +56,14 @@ func cmd_create(args []string) {
     if len(jsons) == 0 {
         fmt.Print("\nPlease give a name for your <package>.json.\n")
         print_create_help()
-        return
+        return -1
     }
 
     for i := 0; i < len(jsons); i++ {
         create_json(jsons[i], force)
     }
+
+    return 0
 }
 
 func create_json(json_name string, force bool) {
@@ -90,14 +92,15 @@ func create_json(json_name string, force bool) {
     defer json_file.Close()
 
     content := `{
-    "name": "",
-    "description": "",
+    "name": "<package name>",
+    "description": "<some description>",
     "category": "",
     "keywords": [""],
-    "author": ["", ""],
+    "author": ["your name", "your email"],
     "contributors":
     [
-        ["", ""]
+        "contributor_a's name", "email"
+        "contributor_b's name", "email"
     ],
     "repositories":
     [

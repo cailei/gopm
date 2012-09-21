@@ -31,7 +31,7 @@ import (
     "os"
 )
 
-type command_fun func(args []string)
+type command_fun func(args []string) int
 
 var cmd_map = map[string]command_fun{
     "update":  cmd_update,

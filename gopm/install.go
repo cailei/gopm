@@ -25,6 +25,153 @@ SOFTWARE.
 
 package main
 
-func cmd_install(args []string) {
+import (
+    "flag"
+    "fmt"
+    "github.com/cailei/gopm_index/gopm/index"
+    "log"
+    "os"
+    "os/exec"
+    "strings"
+)
 
+func cmd_install(args []string) int {
+    known, unknown := extract_unknown_flags(args)
+
+    var help bool
+    f := flag.NewFlagSet("install_flags", flag.ExitOnError)
+    f.BoolVar(&help, "help", false, "show help info")
+    f.BoolVar(&help, "h", false, "show help info")
+    f.Usage = print_install_help
+    f.Parse(known)
+
+    if help {
+        print_install_help()
+        return 0
+    }
+
+    names := f.Args()
+    if len(names) == 0 {
+        fmt.Println("Please specify the packages you want to install.")
+        return -1
+    }
+
+    db := openLocalDB()
+
+    var exact_matches []*index.PackageMeta
+    var partial_matches []*index.PackageMeta
+
+    for pkg, err := db.FirstPackage(); pkg != nil; pkg, err = db.NextPackage() {
+        if err != nil {
+            log.Fatalln(err)
+        }
+
+        low_pkg_name := strings.ToLower(pkg.Name)
+
+        for _, name := range names {
+            low_name := strings.ToLower(name)
+            if low_pkg_name == low_name {
+                exact_matches = append(exact_matches, pkg)
+            } else if strings.Contains(low_pkg_name, low_name) {
+                partial_matches = append(partial_matches, pkg)
+            }
+        }
+    }
+
+    if len(partial_matches) > 0 {
+        fmt.Println("Some packages cannot find a match, did you mean:")
+        for _, p := range partial_matches {
+            fmt.Printf("\t%v\n", p.Name)
+        }
+        return -1
+    }
+
+    if len(exact_matches) == 0 {
+        fmt.Printf("Found nothing!\n")
+    }
+
+    var failed_pkgs []string
+    for _, p := range exact_matches {
+        succ := install_package(p, unknown)
+        if !succ {
+            failed_pkgs = append(failed_pkgs, p.Name)
+        }
+    }
+
+    if len(failed_pkgs) > 0 {
+        fmt.Println("These packages failed to install:")
+        for _, name := range failed_pkgs {
+            fmt.Printf("\t%v\n", name)
+        }
+        return -1
+    }
+
+    return 0
+}
+
+func install_package(pkg *index.PackageMeta, args []string) bool {
+    // try installing from repos
+    succ := false
+    for _, repo := range pkg.Repositories {
+        fmt.Printf("Installing '%v' from (%v)\n", pkg.Name, repo)
+        succ = install_from_repo(repo, args)
+        if succ {
+            break
+        }
+    }
+
+    return succ
+}
+
+func install_from_repo(repo string, args []string) bool {
+    var cmd_line []string
+    cmd_line = append(cmd_line, "get")
+    cmd_line = append(cmd_line, args...)
+    cmd_line = append(cmd_line, repo)
+
+    cmd := exec.Command("go", cmd_line...)
+    cmd.Stdin = os.Stdin
+    cmd.Stdout = os.Stdout
+    cmd.Stderr = os.Stderr
+    err := cmd.Run()
+    if err != nil {
+        //fmt.Println(err)
+        fmt.Println("Failed.\n")
+        return false
+    }
+
+    fmt.Println("Done.\n")
+    return true
+}
+
+func extract_unknown_flags(args []string) (known []string, unknown []string) {
+    for _, a := range args {
+        if strings.HasPrefix(a, "-") {
+            if a == "-h" || a == "--help" {
+                known = append(known, a)
+            } else {
+                unknown = append(unknown, a)
+            }
+        } else {
+            known = append(known, a)
+        }
+    }
+    return
+}
+
+func print_install_help() {
+    fmt.Print(`
+gopm install <pkg1> [pkg2...]:
+    install packages.
+
+    this command will invoke 'go get' to get the job done, you may specify any valid 'go get' flags (see 'go get -h') in the command line, and they will be passed directly to the 'go get'.
+
+e.g.
+    'gopm install -u <package>'     install or upgrade a package from network
+    'gopm install -v <package>'     install a package and be verbose
+
+options:
+    -h, -help       show help info
+
+`)
 }

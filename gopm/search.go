@@ -26,17 +26,16 @@ SOFTWARE.
 package main
 
 import (
-    "bufio"
     "flag"
     "fmt"
-    "github.com/cailei/gopm_index/gopm/index"
-    "io"
+    // "github.com/cailei/gopm_index/gopm/index"
+    // "io"
     "log"
-    "os"
+    // "os"
     "strings"
 )
 
-func cmd_search(args []string) {
+func cmd_search(args []string) int {
     var help bool
     f := flag.NewFlagSet("search_flags", flag.ExitOnError)
     f.BoolVar(&help, "help", false, "show help info")
@@ -44,40 +43,21 @@ func cmd_search(args []string) {
     f.Usage = print_search_help
     f.Parse(args)
 
-    // open local index file for read
-    file, err := os.Open(local_db)
-    if err != nil {
-        log.Fatalln(err)
+    if help {
+        print_search_help()
+        return 0
     }
-    defer file.Close()
 
     keywords := f.Args()
+    db := openLocalDB()
 
-    // use a bufio.Reader to read the index content
-    r := bufio.NewReader(file)
-
-    for {
-        // read next line
-        line, err := r.ReadString('\n')
-
-        if err != nil && err != io.EOF {
-            log.Fatalln(err)
-        }
-
-        // exit if EOF
-        if err == io.EOF {
-            break
-        }
-
-        // construt a PackageMeta from the line
-        var meta index.PackageMeta
-        err = meta.FromJson([]byte(line))
+    for pkg, err := db.FirstPackage(); pkg != nil; pkg, err = db.NextPackage() {
         if err != nil {
             log.Fatalln(err)
         }
 
-        // search all keywords in package name and description
-        text := meta.Name + "." + meta.Description
+        text := pkg.Name + "." + strings.Join(pkg.Keywords, ".") + "." + pkg.Description
+
         all_match := true
         for _, w := range keywords {
             if !strings.Contains(text, w) {
@@ -86,12 +66,13 @@ func cmd_search(args []string) {
             }
         }
 
-        // all keywords is contained in this line
         if all_match {
             // print package name and description
-            fmt.Printf("%v\t%v\n", meta.Name, meta.Description)
+            fmt.Printf("%v\t%v\n", pkg.Name, pkg.Description)
         }
     }
+
+    return 0
 }
 
 func print_search_help() {
