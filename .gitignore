@@ -2,3 +2,4 @@ _bin
 _obj
 *.sublime-workspace
 gopm/gopm
+gopm/gopm.exe
